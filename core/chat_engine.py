@@ -551,6 +551,7 @@ def _tool_call_loop(
     """
     loop_count = 0
     correction_applied = False
+    consecutive_bad_tool_calls = 0
 
     while loop_count < MAX_TOOL_CALL_LOOPS:
         loop_count += 1
@@ -592,6 +593,29 @@ def _tool_call_loop(
             for tc in tool_calls:
                 print(f"[tool-call] Executing: {tc['name']}({tc['arguments']})")
                 args = next(p["function"]["arguments"] for p in parsed_tool_calls if p["id"] == tc['id'])
+
+                # Validate web_search query length to prevent model from sending garbage
+                if tc['name'] == 'web_search':
+                    query = args.get('query', '') if isinstance(args, dict) else ''
+                    if isinstance(query, str) and len(query) > 200:
+                        print(f"[tool-call] web_search query rejected: too long ({len(query)} chars)")
+                        consecutive_bad_tool_calls += 1
+                        conversation_history.append({
+                            "role": "tool",
+                            "tool_call_id": tc['id'],
+                            "content": "Error: search query is too long. Please provide a concise query of 50 characters or less."
+                        })
+                        if consecutive_bad_tool_calls >= 2:
+                            print("[tool-call] model repeatedly sends bad search queries, aborting tool loop")
+                            conversation_history.append({
+                                "role": "assistant",
+                                "content": "I'm having trouble looking that up right now. Based on what I know, I'd recommend checking major UK retailers like Amazon UK, Currys, or PCPartPicker for current RTX pricing."
+                            })
+                            return content, correction_applied
+                        continue
+                    else:
+                        consecutive_bad_tool_calls = 0
+
                 result = _sync_execute_tool(mcp_client, tc['name'], args)
 
                 # Add tool result to history

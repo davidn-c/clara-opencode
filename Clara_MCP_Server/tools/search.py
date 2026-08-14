@@ -37,20 +37,16 @@ async def list_tools(
         Tool(
             name="web_search",
             description=(
-                "Search the web for current, factual information. USE THIS TOOL whenever the user asks about "
-                "something that requires up-to-date or external knowledge — prices, weather, sports scores, "
-                "news, stock prices, schedules, product specs, recipes, directions, or any fact not in your "
-                "training data. If you are uncertain or only partially confident, use this tool instead of "
-                "guessing. Do NOT say 'I'll look that up' or 'let me check' — just call the tool immediately "
-                "with a concise query. The tool returns raw results with title, URL, and snippet. Incorporate "
-                "the specific data from the results into your answer."
+                "Search the web for current information. Use this tool for prices, weather, news, sports, "
+                "stock prices, product specs, or any factual query requiring up-to-date data. "
+                "Provide a concise query string. Returns results with title, URL, and content snippets."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "A concise, effective search query. Be specific — include key terms, dates, or numbers.",
+                        "description": "Search query string. Keep it concise and specific.",
                     },
                     "num_results": {
                         "type": "integer",
