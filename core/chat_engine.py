@@ -39,6 +39,17 @@ from core.analyzer import analyze_exchange
 MAX_TOOL_HOPS = 2  # hard cap so a misbehaving model can't loop forever
 MAX_TOOL_CALL_LOOPS = 3  # max LLM tool-call iterations
 
+# ── Tool cache ──────────────────────────────────────────────
+# Tools are static metadata — fetch once, reuse for all messages.
+# Refresh on cache miss (e.g., after MCP server restart).
+_cached_tools: list[dict] | None = None
+
+
+def _invalidate_tool_cache() -> None:
+    """Clear the cached tools list so the next message fetches fresh."""
+    global _cached_tools
+    _cached_tools = None
+
 
 
 def _extract_tool_line(text: str, token: str) -> str | None:
@@ -503,7 +514,18 @@ def process_message(
 
 
 def _sync_list_tools(mcp_client: McpClient) -> list[dict] | None:
-    """List tools from MCP client synchronously using run_coroutine_threadsafe."""
+    """List tools from MCP client, using a module-level cache.
+
+    Tools are static metadata — the first call fetches from the MCP server
+    and caches the result. Subsequent calls return the cached copy instantly.
+    On failure the cache is invalidated so the next call retries.
+    """
+    global _cached_tools
+
+    # Return cached tools if available
+    if _cached_tools is not None:
+        return _cached_tools
+
     if mcp_client is None or not mcp_client.is_connected:
         return None
     if mcp_client._loop is None:
@@ -514,10 +536,14 @@ def _sync_list_tools(mcp_client: McpClient) -> list[dict] | None:
         mcp_client._loop,
     )
     try:
-        return future.result(timeout=10.0)
+        tools = future.result(timeout=10.0)
     except Exception as e:
         print(f"[tool-call] Failed to list tools: {e}")
+        _cached_tools = None  # invalidate on failure so next call retries
         return None
+
+    _cached_tools = tools
+    return tools
 
 
 def _sync_execute_tool(mcp_client: McpClient, tool_name: str, arguments: dict) -> dict:
@@ -609,7 +635,7 @@ def _tool_call_loop(
                             print("[tool-call] model repeatedly sends bad search queries, aborting tool loop")
                             conversation_history.append({
                                 "role": "assistant",
-                                "content": "I'm having trouble looking that up right now. Based on what I know, I'd recommend checking major UK retailers like Amazon UK, Currys, or PCPartPicker for current RTX pricing."
+                                "content": "I'm having trouble looking that up right now. Based on what I know, I'd recommend checking online."
                             })
                             return content, correction_applied
                         continue

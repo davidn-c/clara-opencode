@@ -37,9 +37,12 @@ async def list_tools(
         Tool(
             name="web_search",
             description=(
-                "Search the web for current information. Use this tool for prices, weather, news, sports, "
-                "stock prices, product specs, or any factual query requiring up-to-date data. "
-                "Provide a concise query string. Returns results with title, URL, and content snippets."
+                "Use this internet search tool any time you need current information or specific URLs."
+                "You will receive real search results and must use them to answer."
+                "Use this search tool for any questions that you are not able to answer."
+                "Do not offer to search and then fail to follow through."
+                "Do not announce that you are searching. Just output a summary of what you found as it relates to the question." 
+                "Provide any URLs if requested."
             ),
             inputSchema={
                 "type": "object",
