@@ -503,6 +503,8 @@ def process_message(
         print(f"[tool-call] Failed to load tools: {e}")
         tools = None
 
+    print(f"[pipeline] tools passed to loop: {tools is not None} ({len(tools) if tools else 0} tools)")
+
     # Unified tool-call loop
     t0 = time.time()
     reply, correction_applied = _tool_call_loop(
@@ -524,11 +526,18 @@ def _sync_list_tools(mcp_client: McpClient) -> list[dict] | None:
 
     # Return cached tools if available
     if _cached_tools is not None:
+        print(f"[tool-call] Returning cached tools: {[t['function']['name'] for t in _cached_tools]}")
         return _cached_tools
 
-    if mcp_client is None or not mcp_client.is_connected:
+    print(f"[tool-cache] Cache miss — fetching tools from MCP server")
+    if mcp_client is None:
+        print(f"[tool-cache] MCP client is None")
+        return None
+    if not mcp_client.is_connected:
+        print(f"[tool-cache] MCP client not connected")
         return None
     if mcp_client._loop is None:
+        print(f"[tool-cache] MCP client has no event loop")
         return None
 
     future = asyncio.run_coroutine_threadsafe(
@@ -543,6 +552,7 @@ def _sync_list_tools(mcp_client: McpClient) -> list[dict] | None:
         return None
 
     _cached_tools = tools
+    print(f"[tool-cache] Fetched and cached {len(tools)} tool(s): {[t['function']['name'] for t in tools]}")
     return tools
 
 

@@ -89,6 +89,9 @@ def llama_chat(messages: list, tools: list[dict] | None = None) -> tuple[str, li
     }
     if tools:
         payload["tools"] = tools
+        print(f"[llm] Sending {len(tools)} tool(s) to LLM: {[t['function']['name'] for t in tools]}")
+    else:
+        print(f"[llm] NO tools sent to LLM (tools is None or empty)")
 
     resp = llm_client.post(
         f"{GEMMA_BASE_URL}/chat/completions",
@@ -97,6 +100,14 @@ def llama_chat(messages: list, tools: list[dict] | None = None) -> tuple[str, li
     )
     resp.raise_for_status()
     message = resp.json()["choices"][0]["message"]
+
+    # Debug: log raw response keys
+    raw_keys = list(message.keys())
+    print(f"[llm] Response keys: {raw_keys}")
+    if "tool_calls" in message:
+        print(f"[llm] tool_calls received: {len(message['tool_calls'])} call(s)")
+    else:
+        print(f"[llm] NO tool_calls in response — model produced text only")
 
     # Handle tool_calls if present
     tool_calls = message.get("tool_calls")
