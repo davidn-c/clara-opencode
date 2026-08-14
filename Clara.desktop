@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Clara Desktop
+Comment=Clara AI Assistant
+Exec=/home/dave/clara-venv/bin/python /home/dave/clara_codecus/main.py
+Icon=/home/dave/clara_codecus/assets/clara_icon.png
+Terminal=false
+StartupNotify=true
+Categories=Utility;AI;

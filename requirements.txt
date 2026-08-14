@@ -1,0 +1,32 @@
+# Clara Desktop — External Python dependencies
+# Generated from source imports and installed venv packages
+
+# ── UI ──────────────────────────────────────────────────────────
+customtkinter==6.0.0
+pillow==12.3.0
+
+# ── HTTP / WebSocket clients ────────────────────────────────────
+httpx==0.28.1
+websocket-client==1.9.0
+
+# ── Environment ─────────────────────────────────────────────────
+python-dotenv==1.2.2
+
+# ── Speech-to-text ──────────────────────────────────────────────
+faster-whisper==1.2.1
+ctranslate2==4.8.1
+onnxruntime==1.28.0
+av==18.0.0
+
+# ── Wake word detection ─────────────────────────────────────────
+openwakeword==0.4.0
+numpy==2.5.1
+scipy==1.18.0
+
+# ── Model inference helpers ─────────────────────────────────────
+huggingface_hub==1.26.0
+tokenizers==0.23.1
+
+# ── Memory service (FastAPI backends — memory_service_*.py) ─────
+fastapi
+asyncpg
