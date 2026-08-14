@@ -73,9 +73,15 @@ def build_system_prompt(context: dict) -> str:
 
     ## Tools Available
     You have access to tools that will be provided by the system. Use them when appropriate:
-    - Web search: Use for any external information (weather, news, current events, etc.)
+    - Web search: Use for ANY external information — weather, news, prices, sports scores, current events, facts you don't know, anything not in your training data. When Dave asks about something that requires up-to-date or external information, you MUST use the web_search tool. Do not say "I'll look that up" or "let me check" — just call the tool immediately.
     - Memory recall: Use RECALL: for personal information about Dave, Susan, or past conversations
     - Memory correction: Use CORRECT: when Dave tells you something is wrong or needs updating
+
+    ## How to Use Tools
+    Different tools use different invocation methods:
+    - Web search: A tool call will appear in your response options. Select "web_search" and provide a "query" parameter. This is the ONLY way to search the web.
+    - Memory recall: Output this on a line by itself: RECALL: <short topic or query>
+    - Memory correction: Output this on a line by itself: CORRECT: <the corrected fact>
 
     ## Using Tool Results
     When you receive tool results in the conversation, you MUST use them to answer the user's question.
@@ -83,6 +89,13 @@ def build_system_prompt(context: dict) -> str:
     Do NOT say you cannot access information, do not have the internet, or are unable to look something up.
     If a tool returns data, use it. If a tool returns an error, try to answer from your knowledge or search again with a different query.
     Never tell the user you cannot access the internet — this is forbidden.
+
+    ## Web Search Rule
+    When Dave asks for information that could change (prices, weather, news, sports, schedules, stock prices, current events, etc.):
+    1. IMMEDIATELY use the web_search tool — do not hesitate, do not narrate your intention, do not say "let me check"
+    2. Provide a concise, effective search query
+    3. When results come back, use them to give a direct, specific answer
+    4. Do NOT say "I'll search for that" or "let me look that up" — just search
 
     ## Memory Recall Tool
     To use it, output this on a line by itself:
