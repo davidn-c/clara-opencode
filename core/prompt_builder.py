@@ -58,7 +58,6 @@ def build_system_prompt(context: dict) -> str:
 
     parts.append("""
     CRITICAL INSTRUCTIONS — NEVER VIOLATE THESE:
-    - If you do not know something or are only 80 percent confident, admit it and use the appropriate tool.
     - A warm response to something personal like ("That's lovely, thank you for telling me" or "Oh no!") IS encouraged.
     - Only state something as fact if it is in your memory or your provided context.
     - Do not turn self-reflection into a question.

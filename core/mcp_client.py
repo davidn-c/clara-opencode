@@ -18,6 +18,7 @@ import asyncio
 import json
 import os
 import sys
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -93,6 +94,7 @@ class McpClient:
         self._stdio_cm = None
         self._streams = None
         self._connected = False
+        self._ready_event = threading.Event()  # signals MCP server is connected
         self._semaphore = asyncio.Semaphore(1)  # serialize tool calls on stdio
         self._loop: asyncio.AbstractEventLoop | None = None  # set by backend for sync calls
 
@@ -165,6 +167,7 @@ class McpClient:
             )
 
         self._connected = True
+        self._ready_event.set()
 
     async def disconnect(self) -> None:
         """Gracefully shut down the session and terminate the subprocess."""
@@ -175,6 +178,7 @@ class McpClient:
     async def _cleanup(self) -> None:
         """Internal: tear down session and streams."""
         self._connected = False
+        self._ready_event.clear()
 
         if self._session is not None:
             try:
@@ -346,6 +350,13 @@ class McpClient:
     @property
     def is_connected(self) -> bool:
         return self._connected
+
+    def wait_for_ready(self, timeout: float = 15.0) -> bool:
+        """Block until the MCP server is connected, or timeout expires.
+
+        Returns True if connected, False if timed out.
+        """
+        return self._ready_event.wait(timeout=timeout)
 
     def call_tool_sync(self, name: str, arguments: dict[str, Any] | None = None) -> str:
         """Synchronous wrapper for call_tool.

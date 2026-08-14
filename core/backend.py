@@ -52,6 +52,7 @@ class ClaraBackend:
         self._mcp_client: McpClient | None = None
         self._mcp_loop: asyncio.AbstractEventLoop | None = None
         self._mcp_task: threading.Thread | None = None
+        self._mcp_ready = threading.Event()  # set when MCP client is connected
 
     # ── Startup ────────────────────────────────────────────────
 
@@ -106,6 +107,7 @@ class ClaraBackend:
         self._mcp_client = McpClient()
         self._mcp_client._loop = asyncio.get_event_loop()
         await self._mcp_client.connect()
+        self._mcp_ready.set()
         gui_logger.log("[mcp] MCP client ready")
 
     def mcp_call_tool(self, name: str, arguments: dict | None = None) -> str:
@@ -198,6 +200,13 @@ class ClaraBackend:
     def chat(self, user_input: str) -> str:
         """Send a user message, get Klara's reply, write episode to memory."""
         my_generation = self._chat_generation
+
+        # Ensure MCP client is connected before processing — tools are required
+        # for the LLM to invoke web_search. Block up to 15s waiting for the
+        # background connection thread to finish.
+        if not self._mcp_ready.wait(timeout=15.0):
+            gui_logger.log("[mcp] Timed out waiting for MCP server — continuing without tools")
+
         reply, correction_applied = core.chat_with_search(
             user_input,
             self.conversation_history,

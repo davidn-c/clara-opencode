@@ -113,8 +113,6 @@ def llama_chat(messages: list, tools: list[dict] | None = None) -> tuple[str, li
             })
         return content, parsed_tool_calls
 
-    content = _strip_reasoning(message)
-    content = _collapse_repeated_words(content)
     return content, None
 
 
