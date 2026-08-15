@@ -93,6 +93,32 @@ def llama_chat(messages: list, tools: list[dict] | None = None) -> tuple[str, li
     else:
         print(f"[llm] NO tools sent to LLM (tools is None or empty)")
 
+    # Debug: dump the messages array
+    print(f"\n[llm-debug] === Messages sent to LLM ({len(messages)} turns) ===")
+    for i, msg in enumerate(messages):
+        role = msg.get("role", "?")
+        content = msg.get("content", "")
+        if isinstance(content, list):
+            parts = []
+            for p in content:
+                if isinstance(p, dict):
+                    if p.get("type") == "image_url":
+                        img_data = p.get("image_url", {}).get("url", "")[:50]
+                        parts.append(f"<image:{img_data}>")
+                    elif p.get("type") == "text":
+                        parts.append(f"text:{p['text'][:100]}")
+                    else:
+                        parts.append(f"type={p.get('type')}")
+                else:
+                    parts.append(str(p)[:100])
+            content_str = ", ".join(parts)
+        else:
+            content_str = str(content)[:200]
+        print(f"  [{i}] role={role} content_len={len(content_str)} preview='{content_str.replace(chr(10),' ')[:120]}'")
+    if tools:
+        print(f"  [tools] {[t['function']['name'] for t in tools]}")
+    print(f"[llm-debug] === End messages ===\n")
+
     resp = llm_client.post(
         f"{GEMMA_BASE_URL}/chat/completions",
         headers={"Authorization": f"Bearer {GEMMA_API_KEY}"},
