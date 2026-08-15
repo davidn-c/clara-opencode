@@ -430,7 +430,7 @@ def _apply_recall(
         if not memory_text or memory_text == "No matching memories found.":
             conversation_history.append({
                 "role": "user",
-                "content": "Memory recall returned no results — this is normal, not an error. Just answer Dave's question using your general knowledge as you normally would. No need to mention memory or apologize."
+                "content": "Memory recall returned no results. Continue with your response."
             })
         else:
             conversation_history.append({
@@ -748,7 +748,7 @@ def _apply_recall_from_tool_call(
     if not memory_text or memory_text == "No matching memories found.":
         conversation_history.append({
             "role": "user",
-            "content": "Memory recall returned no results — this is normal, not an error. Just answer Dave's question using your general knowledge as you normally would. No need to mention memory or apologize."
+            "content": "Memory recall returned no results. Continue with your response."
         })
     else:
         conversation_history.append({
